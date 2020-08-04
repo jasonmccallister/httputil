@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -11,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/go-redis/redis/v8"
+	_ "github.com/lib/pq"
 )
 
 func redisHandler(w http.ResponseWriter, r *http.Request) {
@@ -63,7 +65,31 @@ func envHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(bytes))
+}
+
+func postgresHandler(w http.ResponseWriter, r *http.Request) {
+	conn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", os.Getenv("DB_SERVER"), os.Getenv("DB_PORT"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"))
+
+	fmt.Println(conn)
+
+	db, err := sql.Open("postgres", conn)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("unable to open the postgres database err: " + err.Error()))
+		return
+	}
+	defer db.Close()
+
+	if err := db.Ping(); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("unable to ping the postgres database, err: " + err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("PONG"))
 }
 
 func main() {
@@ -76,6 +102,7 @@ func main() {
 
 	http.HandleFunc("/", envHandler)
 	http.HandleFunc("/redis", redisHandler)
+	http.HandleFunc("/postgres", postgresHandler)
 
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal(err)

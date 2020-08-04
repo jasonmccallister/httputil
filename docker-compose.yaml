@@ -8,9 +8,22 @@ services:
       PORT: 8000
       REDIS_URL: redis
       REDIS_PORT: 6379
+      DB_DSN: pgsql:host=postgres;dbname=httputil
+      DB_SERVER: pgsql
+      DB_NAME: httputil
+      DB_USER: postgres
+      DB_PASSWORD: somepassword
+      DB_PORT: 5432
     volumes:
       - .:/go/src/github.com/jasonmccallister/httputil
     working_dir: /go/src/github.com/jasonmccallister/httputil
     command: go run main.go
   redis:
     image: redis:5-alpine
+  postgres:
+    image: postgres:11-alpine
+    environment:
+      POSTGRES_ROOT_PASSWORD: SuperPassword123456!
+      POSTGRES_DB: httputil
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: somepassword
