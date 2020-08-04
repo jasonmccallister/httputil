@@ -8,3 +8,4 @@ build:
 tag:
 
 push:
+	docker push ${IMAGE}:${TAG}
