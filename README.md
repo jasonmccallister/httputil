@@ -10,4 +10,4 @@ This image is used for deploying and verifying container based systems and provi
 | `/redis` | `200/400` | Tries to ping a Redis database, returns PONG as JSON when successful | `REDIS_URL`, `REDIS_PORT`,`REDIS_DB` |
 | `/database` | `200/400` | Tries to ping a database, returns PONG as JSON when successful | `DB_SERVER`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_DRIVER` |
 
-> 💡 **Tip:** This should **not be used in production** since it directly exposes container environment variables which .
+> 💡 **Tip:** This image should **not be used in production** since it directly exposes container environment variables which can contain sensitive data.
