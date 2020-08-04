@@ -1,0 +1,16 @@
+version: "3.6"
+services:
+  httputil:
+    image: golang:1.14-alpine
+    ports:
+      - 8000:8000
+    environment:
+      PORT: 8000
+      REDIS_URL: redis
+      REDIS_PORT: 6379
+    volumes:
+      - .:/go/src/github.com/jasonmccallister/httputil
+    working_dir: /go/src/github.com/jasonmccallister/httputil
+    command: go run main.go
+  redis:
+    image: redis:5-alpine
