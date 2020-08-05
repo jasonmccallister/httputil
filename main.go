@@ -65,7 +65,7 @@ func redisHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	if _, err := w.Write([]byte(fmt.Sprintf(`{"ping":"%s"}"`, pong))); err != nil {
+	if _, err := w.Write([]byte(fmt.Sprintf(`{"ping":"%s"}`, pong))); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	}
