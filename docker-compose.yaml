@@ -11,7 +11,7 @@ services:
       DB_DSN: pgsql:host=postgres;dbname=httputil
       DB_SERVER: pgsql
       DB_NAME: httputil
-      DB_USER: postgres
+      DB_USER: httputil
       DB_PASSWORD: somepassword
       DB_PORT: 5432
     volumes:
@@ -25,5 +25,15 @@ services:
     environment:
       POSTGRES_ROOT_PASSWORD: SuperPassword123456!
       POSTGRES_DB: httputil
-      POSTGRES_USER: postgres
+      POSTGRES_USER: httputil
       POSTGRES_PASSWORD: somepassword
+  mysql:
+    image: mysql:5.7
+    environment:
+      MYSQL_DATABASE: httputil
+      # So you don't have to use root, but you can if you like
+      MYSQL_USER: httputil
+      # You can use whatever password you like
+      MYSQL_PASSWORD: somepassword
+      # Password for root access
+      MYSQL_ROOT_PASSWORD: somepassword

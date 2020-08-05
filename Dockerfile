@@ -9,4 +9,4 @@ RUN mkdir /app
 WORKDIR /app
 COPY --from=builder /go/src/github.com/jasonmccallister/httputil/httputil .
 ENTRYPOINT ./httputil
-EXPOSE 8888
+EXPOSE 8000
