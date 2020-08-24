@@ -16,6 +16,12 @@ import (
 	_ "github.com/lib/pq"
 )
 
+type response struct {
+	Environment map[string]string `json:"environment"`
+	Headers     map[string]string `json:"headers"`
+	Status      int               `json:"status"`
+}
+
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -73,14 +79,35 @@ func redisHandler(w http.ResponseWriter, r *http.Request) {
 
 func envHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	env := map[string]string{}
 
+	resp := response{}
+
+	// get the environment variables
+	env := map[string]string{}
 	for _, v := range os.Environ() {
 		v := strings.SplitN(v, "=", 2)
-		env[v[0]] = v[1]
-	}
+		if strings.Contains(v[0], "DB_USER") || strings.Contains(v[0], "DB_PASSWORD") || strings.Contains(v[0], "DB_SERVER") {
+			env[v[0]] = "************"
+			fmt.Println("Found", v[0], "with the value", v[1])
+		} else {
+			env[v[0]] = v[1]
+		}
 
-	b, err := json.Marshal(env)
+	}
+	resp.Environment = env
+
+	// get the requeet headers
+	headers := map[string]string{}
+	for name, values := range r.Header {
+		// Loop over all values for the name.
+		for _, value := range values {
+			headers[name] = value
+		}
+	}
+	resp.Headers = headers
+	resp.Status = http.StatusOK
+
+	b, err := json.Marshal(resp)
 	if err != nil {
 		w.Write([]byte("{}"))
 		return
