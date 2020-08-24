@@ -86,7 +86,7 @@ func envHandler(w http.ResponseWriter, r *http.Request) {
 	env := map[string]string{}
 	for _, v := range os.Environ() {
 		v := strings.SplitN(v, "=", 2)
-		if strings.Contains(v[0], "DB_USER") || strings.Contains(v[0], "DB_PASSWORD") || strings.Contains(v[0], "DB_SERVER") {
+		if strings.Contains(v[0], "DB_DSN") || strings.Contains(v[0], "DB_PASSWORD") || strings.Contains(v[0], "DB_SERVER") {
 			env[v[0]] = "************"
 			fmt.Println("Found", v[0], "with the value", v[1])
 		} else {
