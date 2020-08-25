@@ -160,6 +160,7 @@ func mysqlHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("unable to open the database err: " + err.Error()))
+		fmt.Println("connection string:", conn)
 		return
 	}
 	defer db.Close()
@@ -168,6 +169,7 @@ func mysqlHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("unable to ping the database, err: " + err.Error()))
+		fmt.Println("connection string:", conn)
 		return
 	}
 
