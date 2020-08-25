@@ -32,7 +32,8 @@ func main() {
 
 	http.HandleFunc("/", envHandler)
 	http.HandleFunc("/redis", redisHandler)
-	http.HandleFunc("/database", databaseHandler)
+	http.HandleFunc("/postgres", postgresHandler)
+	http.HandleFunc("/mysql", mysqlHandler)
 
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal(err)
@@ -50,7 +51,7 @@ func redisHandler(w http.ResponseWriter, r *http.Request) {
 		e, err := strconv.Atoi(os.Getenv("REDIS_DB"))
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("REDIS_DB must be a valid integer"))
+			_, _ = w.Write([]byte("REDIS_DB must be a valid integer"))
 			return
 		}
 
@@ -66,14 +67,14 @@ func redisHandler(w http.ResponseWriter, r *http.Request) {
 	pong, err := rdb.Ping(ctx).Result()
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("unable to ping the REDIS_URL, err: " + err.Error()))
+		_, _ = w.Write([]byte("unable to ping the REDIS_URL, err: " + err.Error()))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	if _, err := w.Write([]byte(fmt.Sprintf(`{"ping":"%s"}`, pong))); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 	}
 }
 
@@ -96,7 +97,7 @@ func envHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	resp.Environment = env
 
-	// get the requeet headers
+	// get the request headers
 	headers := map[string]string{}
 	for name, values := range r.Header {
 		// Loop over all values for the name.
@@ -109,34 +110,21 @@ func envHandler(w http.ResponseWriter, r *http.Request) {
 
 	b, err := json.Marshal(resp)
 	if err != nil {
-		w.Write([]byte("{}"))
+		_, _ = w.Write([]byte("{}"))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(b)
+	_, _ = w.Write(b)
 }
 
-func databaseHandler(w http.ResponseWriter, r *http.Request) {
-	var conn string
-	var driver string
-
-	switch os.Getenv("DB_DRIVER") {
-	case "pgsql":
-		conn = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", os.Getenv("DB_SERVER"), os.Getenv("DB_PORT"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"))
-		driver = "pgsql"
-	default:
-		log.Println("unknown driver")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("you must provide a DB_DRIVER env var of mysql or pgsql"))
-		return
-	}
-
-	db, err := sql.Open(driver, conn)
+func postgresHandler(w http.ResponseWriter, r *http.Request) {
+	conn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", os.Getenv("DB_SERVER"), os.Getenv("DB_PORT"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"))
+	db, err := sql.Open("pgqsl", conn)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("unable to open the " + driver + " database err: " + err.Error()))
+		_, _ = w.Write([]byte("unable to open the database err: " + err.Error()))
 		return
 	}
 	defer db.Close()
@@ -144,7 +132,7 @@ func databaseHandler(w http.ResponseWriter, r *http.Request) {
 	if err := db.Ping(); err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("unable to ping the " + driver + " database, err: " + err.Error()))
+		_, _ = w.Write([]byte("unable to ping the database, err: " + err.Error()))
 		return
 	}
 
@@ -154,6 +142,41 @@ func databaseHandler(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write([]byte(pong)); err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
+	}
+}
+
+func mysqlHandler(w http.ResponseWriter, r *http.Request) {
+	conn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_SERVER"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_NAME"),
+	)
+
+	db, err := sql.Open("mysql", conn)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("unable to open the database err: " + err.Error()))
+		return
+	}
+	defer db.Close()
+
+	if err := db.Ping(); err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("unable to ping the database, err: " + err.Error()))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	pong := fmt.Sprintf(`{"ping":"%s"}`, "PONG")
+	if _, err := w.Write([]byte(pong)); err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(err.Error()))
 	}
 }
