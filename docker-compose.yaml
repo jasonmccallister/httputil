@@ -9,11 +9,11 @@ services:
       REDIS_URL: redis
       REDIS_PORT: 6379
       DB_DSN: pgsql:host=postgres;dbname=httputil
-      DB_SERVER: pgsql
+      DB_SERVER: mysql
       DB_NAME: httputil
       DB_USER: httputil
       DB_PASSWORD: somepassword
-      DB_PORT: 5432
+      DB_PORT: 3306
     volumes:
       - .:/go/src/github.com/jasonmccallister/httputil
     working_dir: /go/src/github.com/jasonmccallister/httputil
