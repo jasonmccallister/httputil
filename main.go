@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -19,6 +20,7 @@ import (
 type response struct {
 	Environment map[string]string `json:"environment"`
 	Headers     map[string]string `json:"headers"`
+	Interfaces  []string `json:"interfaces"`
 	Status      int               `json:"status"`
 }
 
@@ -106,6 +108,33 @@ func envHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	resp.Headers = headers
+
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("unable to get the interfaces, err: " + err.Error()))
+		return
+	}
+
+	var ips []string
+	for _, i := range ifaces {
+		addrs, _ := i.Addrs()
+
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+			// process IP address
+			ips = append(ips, ip.String())
+		}
+	}
+	resp.Interfaces = ips
+
 	resp.Status = http.StatusOK
 
 	b, err := json.Marshal(resp)

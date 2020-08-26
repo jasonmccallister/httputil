@@ -1,11 +1,13 @@
 IMAGE ?= jasonmccallister/httputil
 TAG ?= latest
 
-deploy: build tag push
+local:
+	docker-compose down -v
+	docker-compose up -d --build
+	docker-compose ps
+deploy: build push
 
 build:
 	docker build -t ${IMAGE}:${TAG} .
-tag:
-
 push:
 	docker push ${IMAGE}:${TAG}
